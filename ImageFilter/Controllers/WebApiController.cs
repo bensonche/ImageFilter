@@ -5,19 +5,20 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Processing;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace ImageFilter.Controllers
 {
-    public class HomeController : Controller
+    public class WebApiController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<WebApiController> _logger;
         private static HttpClient client = new HttpClient();
 
-        public HomeController(ILogger<HomeController> logger)
+        private const string _serverName = "http://192.168.1.108:5000";
+
+        public WebApiController(ILogger<WebApiController> logger)
         {
             _logger = logger;
         }
@@ -28,10 +29,18 @@ namespace ImageFilter.Controllers
             public bool Success { get; set; }
         }
 
-        public async Task<IActionResult> WebApi(string account, string passwd)
+        [Route("[controller]/auth.cgi")]
+        public async Task<JsonResult> Authenticate(string account, string passwd)
         {
-            //var s = HttpContext.Request.Path + HttpContext.Request.QueryString;
-            return await GetImage(account, passwd);
+            var authUrl = $"{_serverName}/webapi/auth.cgi?api=SYNO.API.Auth&method=Login&version=1&account={account}&passwd={passwd}&session=SurveillanceStation";
+            var response = await client.GetAsync(authUrl);
+            if (response.IsSuccessStatusCode)
+            {
+                var html = await response.Content.ReadAsStringAsync();
+                return Json(JsonConvert.DeserializeObject<SnapshotErrorResponse>(html));
+            }
+
+            return Json(new { success = false });
         }
 
         public IActionResult ViewSnapshot()
@@ -39,33 +48,14 @@ namespace ImageFilter.Controllers
             return View();
         }
 
-        public async Task<IActionResult> GetImage(string username, string password)
+        [Route("[controller]/entry.cgi")]
+        public async Task<IActionResult> GetImage(int cameraId)
         {
-            const string serverName = "http://192.168.1.108:5000";
-
-            var snapshotUrl = $"{serverName}/webapi/entry.cgi?camStm=1&version=2&cameraId=3&api=%22SYNO.SurveillanceStation.Camera%22&method=GetSnapshot";
+            var snapshotUrl = $"{_serverName}/webapi/entry.cgi?camStm=1&version=2&cameraId={cameraId}&api=%22SYNO.SurveillanceStation.Camera%22&method=GetSnapshot";
 
             var response = await client.GetAsync(snapshotUrl);
             if (response.IsSuccessStatusCode)
             {
-                var html = await response.Content.ReadAsStringAsync();
-
-                try
-                {
-                    var error = JsonConvert.DeserializeObject<SnapshotErrorResponse>(html);
-                    if (!error.Success)
-                    {
-                        var authUrl = $"{serverName}/webapi/auth.cgi?api=SYNO.API.Auth&method=Login&version=1&account={username}&passwd={password}&session=SurveillanceStation";
-                        response = await client.GetAsync(authUrl);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            return await GetImage(username, password);
-                        }
-                    }
-                }
-                catch (JsonException)
-                { }
-
                 using (var image = await Image.LoadAsync(await response.Content.ReadAsStreamAsync()))
                 {
                     var polygon = new Polygon(new LinearLineSegment(
