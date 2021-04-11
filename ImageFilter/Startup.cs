@@ -50,7 +50,7 @@ namespace ImageFilter
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=ImageFilter}/{action=Index}/{id?}");
             });
         }
     }

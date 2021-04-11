@@ -1,0 +1,62 @@
+﻿@using ImageFilter.Controllers
+@model CredentialsViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="ml-4 mt-4">
+    @using (Html.BeginForm(nameof(ImageFilterController.SaveCredentials), "ImageFilter", FormMethod.Post))
+    {
+        <div>
+            Username: @Html.TextBoxFor(x => x.Username)
+        </div>
+        <div>
+            Password: @Html.PasswordFor(x => x.Password)
+        </div>
+
+        <input type="submit" value="Save" />
+    }
+
+    <div class="pt-3">
+        <img id="image" class="w-50" src="/WebApi/entry.cgi?cameraId=3" />
+    </div>
+
+    <div id="coordinates" class="my-3">test</div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        let $coordinates = $("#coordinates");
+        let $image = $("img#image");
+
+        let originalWidth;
+        let originalHeight;
+
+        var img = new Image();
+        img.onload = function () {
+            originalWidth = img.width;
+            originalHeight = img.height;
+        }
+        img.src = $image.prop("src");
+
+        $("img#image")
+            .mousemove((e) => {
+                let position = $image.position();
+                let width = $image.width();
+                let height = $image.height();
+
+                let percentX = (e.clientX - position.left) / width;
+                let percentY = (e.clientY - position.top) / height;
+
+                let realX = Math.round(percentX * originalWidth);
+                let realY = Math.round(percentY * originalHeight);
+
+                $coordinates.html("x%: " + percentX.toFixed(2) + ", y%: " + percentY.toFixed(2) +", x: " + realX + ", y: " + realY);
+                //$coordinates.html("x: " + x + ", y: " + y + ", height: " + height + ", e.clientY: " + e.clientY + ", position.top: " + position.top);
+                $coordinates.show();
+            })
+            .mouseleave(() => {
+                $coordinates.hide();
+            });
+    </script>
+}

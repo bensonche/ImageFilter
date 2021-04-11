@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ImageFilter.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SixLabors.ImageSharp;
@@ -11,14 +12,14 @@ using System.Threading.Tasks;
 
 namespace ImageFilter.Controllers
 {
-    public class WebApiController : Controller
+    public class ImageFilterController : Controller
     {
-        private readonly ILogger<WebApiController> _logger;
+        private readonly ILogger<ImageFilterController> _logger;
         private static HttpClient client = new HttpClient();
 
         private const string _serverName = "http://192.168.1.108:5000";
 
-        public WebApiController(ILogger<WebApiController> logger)
+        public ImageFilterController(ILogger<ImageFilterController> logger)
         {
             _logger = logger;
         }
@@ -29,7 +30,20 @@ namespace ImageFilter.Controllers
             public bool Success { get; set; }
         }
 
-        [Route("[controller]/auth.cgi")]
+        public async Task<ActionResult> Index()
+        {
+            return View(new CredentialsViewModel());
+        }
+
+        //[Route("[controller]/SaveCredentials")]
+        public async Task<ActionResult> SaveCredentials(CredentialsViewModel credentials)
+        {
+            await Authenticate(credentials.Username, credentials.Password);
+
+            return RedirectToAction(nameof(Index), "ImageFilter");
+        }
+
+        [Route("WebApi/auth.cgi")]
         public async Task<JsonResult> Authenticate(string account, string passwd)
         {
             var authUrl = $"{_serverName}/webapi/auth.cgi?api=SYNO.API.Auth&method=Login&version=1&account={account}&passwd={passwd}&session=SurveillanceStation";
@@ -48,7 +62,7 @@ namespace ImageFilter.Controllers
             return View();
         }
 
-        [Route("[controller]/entry.cgi")]
+        [Route("WebApi/entry.cgi")]
         public async Task<IActionResult> GetImage(int cameraId)
         {
             var snapshotUrl = $"{_serverName}/webapi/entry.cgi?camStm=1&version=2&cameraId={cameraId}&api=%22SYNO.SurveillanceStation.Camera%22&method=GetSnapshot";
@@ -60,12 +74,14 @@ namespace ImageFilter.Controllers
                 {
                     var polygon = new Polygon(new LinearLineSegment(
                         new PointF(0, 0),
-                        new PointF((float)(image.Width * 0.65), 0),
-                        new PointF((float)(image.Width * 0.68), 180),
-                        new PointF((float)(image.Width * 0.73), 180),
-                        new PointF((float)(image.Width * 0.78), (float)(image.Height * 0.45)),
-                        new PointF((float)(image.Width * 0.30), (float)(image.Height * 0.60)),
-                        new PointF(0, (float)(image.Height * 0.83))
+                        new PointF((float)(image.Width * 0.76), 0),
+                        new PointF((float)(image.Width * 0.79), 400),
+                        new PointF((float)(image.Width * 0.83), 430),
+                        new PointF((float)(image.Width * 0.82), 840),
+                        new PointF((float)(image.Width * 0.83), 870),
+                        new PointF((float)(image.Width * 0.83), 990),
+                        new PointF((float)(image.Width * 0.31), 1030),
+                        new PointF(0, 1335)
                         ));
 
                     image.Mutate(x => x.Fill(Color.Black, polygon));
