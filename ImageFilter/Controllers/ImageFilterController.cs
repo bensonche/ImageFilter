@@ -30,7 +30,7 @@ namespace ImageFilter.Controllers
             public bool Success { get; set; }
         }
 
-        public async Task<ActionResult> Index()
+        public ActionResult Index()
         {
             return View(new CredentialsViewModel());
         }
