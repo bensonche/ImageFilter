@@ -5,16 +5,20 @@
 }
 
 <div class="ml-4 mt-4">
+    Version 6/10/2021
+</div>
+
+<div class="ml-4 mt-4">
     @using (Html.BeginForm(nameof(ImageFilterController.SaveCredentials), "ImageFilter", FormMethod.Post))
     {
-        <div>
-            Username: @Html.TextBoxFor(x => x.Username)
-        </div>
-        <div>
-            Password: @Html.PasswordFor(x => x.Password)
-        </div>
+    <div>
+        Username: @Html.TextBoxFor(x => x.Username)
+    </div>
+    <div>
+        Password: @Html.PasswordFor(x => x.Password)
+    </div>
 
-        <input type="submit" value="Save" />
+    <input type="submit" value="Save" />
     }
 
     <div class="pt-3">
@@ -51,7 +55,7 @@
                 let realX = Math.round(percentX * originalWidth);
                 let realY = Math.round(percentY * originalHeight);
 
-                $coordinates.html("x%: " + percentX.toFixed(2) + ", y%: " + percentY.toFixed(2) +", x: " + realX + ", y: " + realY);
+                $coordinates.html("x%: " + percentX.toFixed(2) + ", y%: " + percentY.toFixed(2) + ", x: " + realX + ", y: " + realY);
                 //$coordinates.html("x: " + x + ", y: " + y + ", height: " + height + ", e.clientY: " + e.clientY + ", position.top: " + position.top);
                 $coordinates.show();
             })
